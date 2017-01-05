@@ -26,6 +26,9 @@ OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
 EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
+#include <signal.h>
+#include <stdio.h>
+
 // os_error_t
 os_error_t::os_error_t( std::string const & msg )
 {
@@ -437,10 +440,21 @@ bool thread_buffer_t::stop_thread()
     return true;
 }
 
+void thread_exit_handler(int sig)
+{
+    pthread_exit(0);
+}
+
 bool thread_buffer_t::abort_thread()
 {
     if( m_thread_started ) {
         //if( int code=pthread_cancel( m_thread ) ) {
+		struct sigaction actions;
+		memset(&actions, 0, sizeof(actions)); 
+		sigemptyset(&actions.sa_mask);
+		actions.sa_flags = 0; 
+		actions.sa_handler = thread_exit_handler;
+		sigaction(SIGUSR1,&actions,NULL);
 		int code=0;
 		if ( (code=pthread_kill(m_thread, SIGUSR1)) != 0) {
             throw os_error_t( "thread_buffer_t::abort_thread: pthread_cancel failed", code );
@@ -452,17 +466,6 @@ bool thread_buffer_t::abort_thread()
         m_thread_started=false;
     }
     return true;
-}
-
-struct sigaction actions;
-memset(&actions, 0, sizeof(actions)); 
-sigemptyset(&actions.sa_mask);
-actions.sa_flags = 0; 
-actions.sa_handler = thread_exit_handler;
-rc = sigaction(SIGUSR1,&actions,NULL);
-void thread_exit_handler(int sig)
-{ 
-    pthread_exit(0);
 }
 
 const int s_in_eof=16;
