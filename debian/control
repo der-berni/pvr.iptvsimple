@@ -1,4 +1,4 @@
-Source: kodi-pvr-iptvsimple
+Source: kodi-pvr-iptvsimple.rec
 Priority: extra
 Maintainer: Anton Fedchin <anightik@gmail.com>
 Build-Depends: debhelper (>= 9.0.0), cmake, kodi-pvr-dev,
@@ -6,14 +6,14 @@ Build-Depends: debhelper (>= 9.0.0), cmake, kodi-pvr-dev,
 Standards-Version: 3.9.4
 Section: libs
 
-Package: kodi-pvr-iptvsimple
+Package: kodi-pvr-iptvsimple.rec
 Section: libs
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}
 Description: Simple IPTV PVR for Kodi
  Simple IPTV PVR for Kodi
 
-Package: kodi-pvr-iptvsimple-dbg
+Package: kodi-pvr-iptvsimple.rec-dbg
 Section: debug
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}

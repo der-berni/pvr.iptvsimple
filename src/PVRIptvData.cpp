@@ -30,8 +30,7 @@
 #include "zlib.h"
 #include "rapidxml/rapidxml.hpp"
 #include "PVRIptvData.h"
-#include "platform/util/StringUtils.h"
-#include "PVRUtils.h"
+#include "p8-platform/util/StringUtils.h"
 
 #define M3U_START_MARKER        "#EXTM3U"
 #define M3U_INFO_MARKER         "#EXTINF"
@@ -331,10 +330,11 @@ bool PVRIptvData::LoadPlayList(void)
   char szLine[1024];
   while(stream.getline(szLine, 1024)) 
   {
-  
     std::string strLine(szLine);
     strLine = StringUtils::TrimRight(strLine, " \t\r\n");
     strLine = StringUtils::TrimLeft(strLine, " \t");
+
+    XBMC->Log(LOG_DEBUG, "Read line: '%s'", strLine.c_str());
 
     if (strLine.empty())
     {
@@ -356,7 +356,10 @@ bool PVRIptvData::LoadPlayList(void)
       }
       else
       {
-        break;
+        XBMC->Log(LOG_ERROR,
+                  "URL '%s' missing %s descriptor on line 1, attempting to "
+                  "parse it anyway.",
+                  m_strM3uUrl.c_str(), M3U_START_MARKER);
       }
     }
 
@@ -439,6 +442,10 @@ bool PVRIptvData::LoadPlayList(void)
     } 
     else if (strLine[0] != '#')
     {
+      XBMC->Log(LOG_DEBUG,
+                "Found URL: '%s' (current channel name: '%s')",
+                strLine.c_str(), tmpChannel.strChannelName.c_str());
+
       PVRIptvChannel channel;
       channel.iUniqueId         = GetChannelId(tmpChannel.strChannelName.c_str(), strLine.c_str());
       channel.iChannelNumber    = iChannelNum++;
@@ -597,28 +604,6 @@ bool PVRIptvData::GetChannel(const PVR_CHANNEL &channel, PVRIptvChannel &myChann
   return false;
 }
 
-bool PVRIptvData::GetChannelByName(const std::string strChannelName, PVRIptvChannel &myChannel)
-{
-  for (unsigned int iChannelPtr = 0; iChannelPtr < m_channels.size(); iChannelPtr++)
-  {
-    PVRIptvChannel &thisChannel = m_channels.at(iChannelPtr);
-    if (thisChannel.strChannelName == strChannelName)
-    {
-      myChannel.iUniqueId         = thisChannel.iUniqueId;
-      myChannel.bRadio            = thisChannel.bRadio;
-      myChannel.iChannelNumber    = thisChannel.iChannelNumber;
-      myChannel.iEncryptionSystem = thisChannel.iEncryptionSystem;
-      myChannel.strChannelName    = thisChannel.strChannelName;
-      myChannel.strLogoPath       = thisChannel.strLogoPath;
-      myChannel.strStreamURL      = thisChannel.strStreamURL;
-
-      return true;
-    }
-  }
-
-  return false;
-}
-
 int PVRIptvData::GetChannelGroupsAmount(void)
 {
   return m_groups.size();
@@ -754,74 +739,6 @@ PVR_ERROR PVRIptvData::GetEPGForChannel(ADDON_HANDLE handle, const PVR_CHANNEL &
   return PVR_ERROR_NO_ERROR;
 }
 
-PVR_ERROR PVRIptvData::GetEPGTagForChannel(EPG_TAG &tag, const PVR_CHANNEL &channel, time_t iStart, time_t iEnd)
-{
-  std::vector<PVRIptvChannel>::iterator myChannel;
-  for (myChannel = m_channels.begin(); myChannel < m_channels.end(); ++myChannel)
-  {
-    if (myChannel->iUniqueId != (int) channel.iUniqueId)
-      continue;
-
-    PVRIptvEpgChannel *epg;
-    if ((epg = FindEpgForChannel(*myChannel)) == NULL || epg->epg.size() == 0)
-      return PVR_ERROR_FAILED;
-
-    int iShift = m_bTSOverride ? m_iEPGTimeShift : myChannel->iTvgShift + m_iEPGTimeShift;
-
-    std::vector<PVRIptvEpgEntry>::iterator myTag;
-    for (myTag = epg->epg.begin(); myTag < epg->epg.end(); ++myTag)
-    {
-      if ((myTag->endTime + iShift) < iStart) 
-        continue;
-
-      int iGenreType, iGenreSubType;
-      
-      tag.iUniqueBroadcastId  = myTag->iBroadcastId;
-      tag.strTitle            = myTag->strTitle.c_str();
-      tag.iChannelNumber      = myTag->iChannelId;
-      tag.startTime           = myTag->startTime + iShift;
-      tag.endTime             = myTag->endTime + iShift;
-      tag.strPlotOutline      = myTag->strPlotOutline.c_str();
-      tag.strPlot             = myTag->strPlot.c_str();
-      tag.strOriginalTitle    = NULL;  /* not supported */
-      tag.strCast             = NULL;  /* not supported */
-      tag.strDirector         = NULL;  /* not supported */
-      tag.strWriter           = NULL;  /* not supported */
-      tag.iYear               = 0;     /* not supported */
-      tag.strIMDBNumber       = NULL;  /* not supported */
-      tag.strIconPath         = myTag->strIconPath.c_str();
-      if (FindEpgGenre(myTag->strGenreString, iGenreType, iGenreSubType))
-      {
-        tag.iGenreType          = iGenreType;
-        tag.iGenreSubType       = iGenreSubType;
-        tag.strGenreDescription = NULL;
-      }
-      else
-      {
-        tag.iGenreType          = EPG_GENRE_USE_STRING;
-        tag.iGenreSubType       = 0;     /* not supported */
-        tag.strGenreDescription = myTag->strGenreString.c_str();
-      }
-      tag.iParentalRating     = 0;     /* not supported */
-      tag.iStarRating         = 0;     /* not supported */
-      tag.bNotify             = false; /* not supported */
-      tag.iSeriesNumber       = 0;     /* not supported */
-      tag.iEpisodeNumber      = 0;     /* not supported */
-      tag.iEpisodePartNumber  = 0;     /* not supported */
-      tag.strEpisodeName      = NULL;  /* not supported */
-
-
-      
-      if ((myTag->startTime + iShift) > iEnd)
-        break;
-    }
-
-    return PVR_ERROR_NO_ERROR;
-  }
-
-  return PVR_ERROR_FAILED;
-}
-
 int PVRIptvData::GetFileContents(std::string& url, std::string &strContent)
 {
   strContent.clear();
@@ -841,9 +758,12 @@ int PVRIptvData::ParseDateTime(std::string& strDate, bool iDateFormat)
 {
   struct tm timeinfo;
   memset(&timeinfo, 0, sizeof(tm));
+  char sign = '+';
+  int hours = 0;
+  int minutes = 0;
 
   if (iDateFormat)
-    sscanf(strDate.c_str(), "%04d%02d%02d%02d%02d%02d", &timeinfo.tm_year, &timeinfo.tm_mon, &timeinfo.tm_mday, &timeinfo.tm_hour, &timeinfo.tm_min, &timeinfo.tm_sec);
+    sscanf(strDate.c_str(), "%04d%02d%02d%02d%02d%02d %c%02d%02d", &timeinfo.tm_year, &timeinfo.tm_mon, &timeinfo.tm_mday, &timeinfo.tm_hour, &timeinfo.tm_min, &timeinfo.tm_sec, &sign, &hours, &minutes);
   else
     sscanf(strDate.c_str(), "%02d.%02d.%04d%02d:%02d:%02d", &timeinfo.tm_mday, &timeinfo.tm_mon, &timeinfo.tm_year, &timeinfo.tm_hour, &timeinfo.tm_min, &timeinfo.tm_sec);
 
@@ -851,7 +771,22 @@ int PVRIptvData::ParseDateTime(std::string& strDate, bool iDateFormat)
   timeinfo.tm_year -= 1900;
   timeinfo.tm_isdst = -1;
 
-  return mktime(&timeinfo);
+  std::time_t current_time;
+  std::time(&current_time);
+  long offset = 0;
+#ifndef TARGET_WINDOWS
+  offset = -std::localtime(&current_time)->tm_gmtoff;
+#else
+  _get_timezone(&offset);
+#endif // TARGET_WINDOWS
+  
+  long offset_of_date = (hours * 60 * 60) + (minutes * 60);
+  if (sign == '-') 
+  {
+    offset_of_date = -offset_of_date;
+  }
+
+  return mktime(&timeinfo) - offset_of_date - offset;
 }
 
 PVRIptvChannel * PVRIptvData::FindChannel(const std::string &strId, const std::string &strName)
@@ -1060,14 +995,18 @@ int PVRIptvData::GetCachedFileContents(const std::string &strCachedName, const s
 
 void PVRIptvData::ApplyChannelsLogos()
 {
-  if (m_strLogoPath.empty())
-    return;
-
   std::vector<PVRIptvChannel>::iterator channel;
   for(channel = m_channels.begin(); channel < m_channels.end(); ++channel)
   {
     if (!channel->strTvgLogo.empty())
-      channel->strLogoPath = PathCombine(m_strLogoPath, channel->strTvgLogo);
+    {
+      if (!m_strLogoPath.empty() 
+        // special proto
+        && channel->strTvgLogo.find("://") == std::string::npos)
+        channel->strLogoPath = PathCombine(m_strLogoPath, channel->strTvgLogo);
+      else
+        channel->strLogoPath = channel->strTvgLogo;
+    }
   }
 }
 

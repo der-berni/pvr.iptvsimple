@@ -22,19 +22,16 @@
  *
  */
 
-
 #include "client.h"
-#include "kodi/xbmc_pvr_dll.h"
-#include "kodi/libKODI_guilib.h"
+#include "xbmc_pvr_dll.h"
+#include "libKODI_guilib.h"
 #include "PVRIptvData.h"
-#include "platform/util/util.h"
- #include <dirent.h>
+#include "p8-platform/util/util.h"
+#include <dirent.h>
 
 using namespace ADDON;
 
 #include "PVRRecorder.h"
-
-
 #ifdef TARGET_WINDOWS
 #define snprintf _snprintf
 #endif
@@ -323,13 +320,25 @@ void ADDON_FreeSettings()
 {
 }
 
-void ADDON_Announce(const char *flag, const char *sender, const char *message, const void *data)
-{
-}
-
 /***********************************************************
  * PVR Client AddOn specific public library functions
  ***********************************************************/
+
+void OnSystemSleep()
+{
+}
+
+void OnSystemWake()
+{
+}
+
+void OnPowerSavingActivated()
+{
+}
+
+void OnPowerSavingDeactivated()
+{
+}
 
 const char* GetPVRAPIVersion(void)
 {
@@ -345,12 +354,12 @@ const char* GetMininumPVRAPIVersion(void)
 
 const char* GetGUIAPIVersion(void)
 {
-  return KODI_GUILIB_API_VERSION;
+  return ""; // GUI API not used
 }
 
 const char* GetMininumGUIAPIVersion(void)
 {
-  return KODI_GUILIB_MIN_API_VERSION;
+  return ""; // GUI API not used
 }
 
 PVR_ERROR GetAddonCapabilities(PVR_ADDON_CAPABILITIES* pCapabilities)
@@ -586,7 +595,7 @@ PVR_ERROR GetRecordings(ADDON_HANDLE handle, bool deleted) {
 }
 
 /** UNUSED API FUNCTIONS */
-const char * GetLiveStreamURL(const PVR_CHANNEL &channel)  { return ""; }
+
 PVR_ERROR OpenDialogChannelScan(void) { return PVR_ERROR_NOT_IMPLEMENTED; }
 PVR_ERROR CallMenuHook(const PVR_MENUHOOK &menuhook, const PVR_MENUHOOK_DATA &item) { return PVR_ERROR_NOT_IMPLEMENTED; }
 PVR_ERROR DeleteChannel(const PVR_CHANNEL &channel) { return PVR_ERROR_NOT_IMPLEMENTED; }
@@ -617,11 +626,12 @@ void DemuxAbort(void) {}
 DemuxPacket* DemuxRead(void) { return NULL; }
 unsigned int GetChannelSwitchDelay(void) { return 0; }
 void PauseStream(bool bPaused) {}
-bool SeekTime(int,bool,double*) { return false; }
+bool SeekTime(double,bool,double*) { return false; }
 void SetSpeed(int) {};
 time_t GetPlayingTime() { return 0; }
 time_t GetBufferTimeStart() { return 0; }
 time_t GetBufferTimeEnd() { return 0; }
 PVR_ERROR UndeleteRecording(const PVR_RECORDING& recording) { return PVR_ERROR_NOT_IMPLEMENTED; }
 PVR_ERROR DeleteAllRecordingsFromTrash() { return PVR_ERROR_NOT_IMPLEMENTED; }
+PVR_ERROR SetEPGTimeFrame(int) { return PVR_ERROR_NOT_IMPLEMENTED; }
 }
