@@ -441,7 +441,8 @@ bool thread_buffer_t::abort_thread()
 {
     if( m_thread_started ) {
         //if( int code=pthread_cancel( m_thread ) ) {
-		if ( (int code=pthread_kill(m_thread, SIGUSR1)) != 0) {
+		int code=0;
+		if ( (code=pthread_kill(m_thread, SIGUSR1)) != 0) {
             throw os_error_t( "thread_buffer_t::abort_thread: pthread_cancel failed", code );
         }
         void * thread_result;
