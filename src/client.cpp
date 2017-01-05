@@ -28,6 +28,7 @@
 #include "PVRIptvData.h"
 #include "p8-platform/util/util.h"
 #include <dirent.h>
+#include "PVRUtils.h"
 
 using namespace ADDON;
 
@@ -573,7 +574,7 @@ PVR_ERROR GetRecordings(ADDON_HANDLE handle, bool deleted) {
       XBMC->Log(LOG_DEBUG, "Found recording: %s", filename.c_str());
 
       PVR_RECORDING   tag;
-      PVR_STRCPY(tag.strRecordingId, to_string(id++).c_str());
+      PVR_STRCPY(tag.strRecordingId, inttostr(id++).c_str());
       PVR_STRCPY(tag.strTitle, filename.substr(0, filename.size() - 1 - g_fileExtension.size() - 22).c_str());
       PVR_STRCPY(tag.strPlot, "");
       PVR_STRCPY(tag.strStreamURL, (g_recordingsPath + filename).c_str());
