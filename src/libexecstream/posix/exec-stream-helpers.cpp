@@ -440,7 +440,8 @@ bool thread_buffer_t::stop_thread()
 bool thread_buffer_t::abort_thread()
 {
     if( m_thread_started ) {
-        if( int code=pthread_cancel( m_thread ) ) {
+        //if( int code=pthread_cancel( m_thread ) ) {
+		if ( (int code= = pthread_kill(m_thread, SIGUSR1)) != 0) {
             throw os_error_t( "thread_buffer_t::abort_thread: pthread_cancel failed", code );
         }
         void * thread_result;
@@ -450,6 +451,17 @@ bool thread_buffer_t::abort_thread()
         m_thread_started=false;
     }
     return true;
+}
+
+struct sigaction actions;
+memset(&actions, 0, sizeof(actions)); 
+sigemptyset(&actions.sa_mask);
+actions.sa_flags = 0; 
+actions.sa_handler = thread_exit_handler;
+rc = sigaction(SIGUSR1,&actions,NULL);
+void thread_exit_handler(int sig)
+{ 
+    pthread_exit(0);
 }
 
 const int s_in_eof=16;
