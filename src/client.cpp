@@ -596,7 +596,7 @@ PVR_ERROR GetRecordings(ADDON_HANDLE handle, bool deleted) {
 }
 
 /** UNUSED API FUNCTIONS */
-
+const char * GetLiveStreamURL(const PVR_CHANNEL &channel)  { return ""; }
 PVR_ERROR OpenDialogChannelScan(void) { return PVR_ERROR_NOT_IMPLEMENTED; }
 PVR_ERROR CallMenuHook(const PVR_MENUHOOK &menuhook, const PVR_MENUHOOK_DATA &item) { return PVR_ERROR_NOT_IMPLEMENTED; }
 PVR_ERROR DeleteChannel(const PVR_CHANNEL &channel) { return PVR_ERROR_NOT_IMPLEMENTED; }
