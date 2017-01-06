@@ -626,6 +626,7 @@ PVR_ERROR GetTimerTypes(PVR_TIMER_TYPE types[], int *size) { return PVR_ERROR_NO
 void DemuxAbort(void) {}
 DemuxPacket* DemuxRead(void) { return NULL; }
 unsigned int GetChannelSwitchDelay(void) { return 0; }
+bool IsRealTimeStream(void) { return true; }
 void PauseStream(bool bPaused) {}
 bool SeekTime(double,bool,double*) { return false; }
 void SetSpeed(int) {};
