@@ -197,6 +197,7 @@ void *PVRRecorderThread::Process(void)
     vector<string> stremaUrlVect = StringUtils::Split (strStreamUrl," ");
     if (stremaUrlVect.size()>0) {
 	strParams = stremaUrlVect[0];
+	    /*
 	for (unsigned int i=1; i<stremaUrlVect.size();i++) {
 	    string line = StringUtils::Trim(stremaUrlVect[i]);
 	    if (line.length()>0) {
@@ -209,7 +210,9 @@ void *PVRRecorderThread::Process(void)
 		}
 	    }
         }
+	*/
     }
+/*
     if(g_useCurl)
     {
 		strCommand = "/usr/bin/curl";
@@ -264,30 +267,39 @@ void *PVRRecorderThread::Process(void)
 		strCommand = g_ffmpegPath;
 		XBMC->Log(LOG_NOTICE,"Starting ffmpeg: %s",strCommandLog.c_str());
     }
-    
+
     //POSIX
     es.set_binary_mode(exec_stream_t::s_out);
     es.set_wait_timeout(exec_stream_t::s_in,g_streamTimeout*1000);
     es.set_wait_timeout(exec_stream_t::s_out,g_streamTimeout*1000);
     es.start( strCommand , strParams);
+*/
+	
+    void* streamHandle = XBMC->OpenFile(strParams.c_str(), 0);
+    if (!streamHandle)
+    {
+        XBMC->Log(LOG_NOTICE,"Open stream failed: %d",g_streamTimeout);
+    }
 
     XBMC->Log(LOG_NOTICE,"Set stream timeout: %d",g_streamTimeout);
     void *fileHandle;
     fileHandle = XBMC->OpenFileForWrite(videoFile.c_str(), true);
     
-	PVR->TriggerRecordingUpdate();
-
+    PVR->TriggerRecordingUpdate();
+    
     string buffer;
     //int bytes_read;
     streamsize bytes_read;
     bool startTransmission = false;
     bool firstKilobyteReaded = false;
     time_t last_readed = time(NULL);
+    char steambuffer[1024];
     while(true)
     {
 	string buff;
 	try {
-	    getline( es.out(bytes_read), buff,'\n' ).good();
+	    XBMC->ReadFileString(streamHandle, steambuffer, 1024);
+	    getline( cin.get(steambuffer, 1024), buff,'\n' ).good();
 	    buffer = buffer+buff+"\n";
 	    length=length+buff.size();
 	    last_readed = time(NULL);
@@ -351,8 +363,9 @@ void *PVRRecorderThread::Process(void)
 	if (now-last_readed>=g_streamTimeout)
 	{
 	    //something wrong - data not growing
-	    es.close();
-	    es.kill();
+	    //es.close();
+	    //es.kill();
+            XBMC->CloseFile(streamHandle);
             XBMC->CloseFile(fileHandle);
                
             XBMC->Log(LOG_NOTICE, "Recording failed %s", entry.Timer.strTitle);
@@ -376,8 +389,9 @@ void *PVRRecorderThread::Process(void)
 	}
         if (entry.Timer.endTime<time(NULL) || entry.Status==PVR_STREAM_IS_STOPPING || entry.Status==PVR_STREAM_STOPPED)
         {
-	    es.close();
-	    es.kill();
+	    //es.close();
+	    //es.kill();
+            XBMC->CloseFile(streamHandle);
             XBMC->CloseFile(fileHandle);
                             
             XBMC->Log(LOG_NOTICE, "Recording stopped %s", entry.Timer.strTitle);
@@ -399,8 +413,9 @@ void *PVRRecorderThread::Process(void)
             return NULL;
         }
     }
-    es.close();
-    es.kill();
+    //es.close();
+    //es.kill();
+    XBMC->CloseFile(streamHandle);
     XBMC->CloseFile(fileHandle);
     time_t end_time = time(NULL);
     //Correct duration time
