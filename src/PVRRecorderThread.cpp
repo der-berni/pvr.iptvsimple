@@ -276,9 +276,9 @@ void *PVRRecorderThread::Process(void)
 */
 	
     void* streamHandle = XBMC->OpenFile(strParams.c_str(), 0);
-    if (!streamHandle)
+    if (streamHandle)
     {
-        XBMC->Log(LOG_NOTICE,"Open stream failed: %d",g_streamTimeout);
+        XBMC->Log(LOG_NOTICE,"Open stream: %s",strParams.c_str());
     }
 
     XBMC->Log(LOG_NOTICE,"Set stream timeout: %d",g_streamTimeout);
@@ -293,15 +293,15 @@ void *PVRRecorderThread::Process(void)
     bool startTransmission = false;
     bool firstKilobyteReaded = false;
     time_t last_readed = time(NULL);
-    char steambuffer[1024];
+    char steambuffer[32768];
     while(true)
     {
 	string buff;
 	try {
-	    XBMC->ReadFile(streamHandle, steambuffer, 1024);
-	    getline( cin.get(steambuffer, 1024), buff,'\n' ).good();
-	    buffer = buffer+buff+"\n";
-	    length=length+buff.size();
+	    XBMC->ReadFile(streamHandle, steambuffer, 32768);
+	    //getline( cin.get(steambuffer, 1024), buff,'\n' ).good();
+	    //buffer = buffer+buff+"\n";
+	    length=length+steambuffer.size();
 	    last_readed = time(NULL);
 	    
 	    if (startTransmission == false)
@@ -309,7 +309,7 @@ void *PVRRecorderThread::Process(void)
 		t_startRecTime = time(NULL);
 		startTransmission = true;
 	    }
-	    
+	    /*
 	    if (firstKilobyteReaded==false)
 	    {
 		int loop;
@@ -350,9 +350,10 @@ void *PVRRecorderThread::Process(void)
 	    
 	    if (firstKilobyteReaded==true)
 	    {
-		XBMC->WriteFile(fileHandle, buffer.c_str(), buffer.size());
+		*/
+		XBMC->WriteFile(fileHandle, steambuffer.c_str(), steambuffer.size());
 		buffer.clear();
-	    }
+	    //}
 	}catch( std::exception const & e ) {
 	    //nothing to read
 	}
