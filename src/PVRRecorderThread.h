@@ -41,7 +41,7 @@ class PVRRecorderThread : P8PLATFORM::CThread
     FILE* t_proc;
     exec_stream_t es;
     double t_duration;
-    void CorrectDurationFLVFile (const string &videoFile, const double &duration);
+    void CorrectDurationFile (const string &videoFile, const double &duration);
     int t_iClientIndex;
     PVRIptvChannel t_currentChannel;
     time_t t_startRecTime;
