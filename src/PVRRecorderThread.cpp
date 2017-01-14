@@ -298,7 +298,7 @@ void *PVRRecorderThread::Process(void)
     {
 	string buff;
 	try {
-	    XBMC->ReadFileString(streamHandle, steambuffer, 1024);
+	    XBMC->ReadFile(streamHandle, steambuffer, 1024);
 	    getline( cin.get(steambuffer, 1024), buff,'\n' ).good();
 	    buffer = buffer+buff+"\n";
 	    length=length+buff.size();
