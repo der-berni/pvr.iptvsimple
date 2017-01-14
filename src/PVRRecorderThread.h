@@ -21,11 +21,9 @@
  */
 
 #include "p8-platform/util/StringUtils.h"
-#include <map>
 #include "p8-platform/threads/threads.h"
 #include "PVRIptvData.h"
 #include <string>
-#include "libexecstream/exec-stream.h"
 
 using namespace ADDON;
 
@@ -37,9 +35,9 @@ class PVRRecorderThread : P8PLATFORM::CThread
     virtual void StopThread(bool bWait = true);
     virtual void *Process(void);
     bool isWorking;
+    
     private:
     FILE* t_proc;
-    exec_stream_t es;
     double t_duration;
     void CorrectDurationFile (const string &videoFile, const double &duration);
     int t_iClientIndex;
