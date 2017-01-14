@@ -78,7 +78,7 @@ void PVRRecorderThread::StopThread(bool bWait /*= true*/)
     CThread::StopThread(bWait);
 }
 
-void PVRRecorderThread::CorrectDuration (const string &videoFile, const double &duration)
+void PVRRecorderThread::CorrectDuration(const string &videoFile, const double &duration)
 {
     if (duration<0)
 	{
