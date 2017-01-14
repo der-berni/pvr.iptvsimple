@@ -301,7 +301,7 @@ void *PVRRecorderThread::Process(void)
 	    XBMC->ReadFile(streamHandle, steambuffer, 32768);
 	    //getline( cin.get(steambuffer, 1024), buff,'\n' ).good();
 	    //buffer = buffer+buff+"\n";
-	    length=length+steambuffer.size();
+	    length=length+sizeof(steambuffer);
 	    last_readed = time(NULL);
 	    
 	    if (startTransmission == false)
@@ -351,7 +351,7 @@ void *PVRRecorderThread::Process(void)
 	    if (firstKilobyteReaded==true)
 	    {
 		*/
-		XBMC->WriteFile(fileHandle, steambuffer.c_str(), steambuffer.size());
+		XBMC->WriteFile(fileHandle, steambuffer, sizeof(steambuffer));
 		buffer.clear();
 	    //}
 	}catch( std::exception const & e ) {
